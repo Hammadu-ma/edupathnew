@@ -49,15 +49,17 @@ export function Input({ label, error, icon, className = '', ...props }: {
 }
 
 // Select
-export function Select({ label, options, value, onChange, className = '' }: {
-  label?: string; options: { value: string; label: string }[]; value: string; onChange: (v: string) => void; className?: string;
+export function Select({ label, options, value, defaultValue, onChange, className = '' }: {
+  label?: string; options: { value: string; label: string }[]; value?: string; defaultValue?: string; onChange?: (v: string) => void; className?: string;
 }) {
+  const [internal, setInternal] = useState(defaultValue ?? options[0]?.value ?? '');
+  const current = value !== undefined ? value : internal;
   return (
     <div className={className}>
       {label && <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">{label}</label>}
       <div className="relative">
         <select
-          value={value} onChange={e => onChange(e.target.value)}
+          value={current} onChange={e => { setInternal(e.target.value); onChange?.(e.target.value); }}
           className="w-full appearance-none rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] pl-3.5 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
         >
           {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -141,8 +143,8 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: {
   if (!isOpen) return null;
   const sizes = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
   return (
-    <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={e => { if (e.target === overlayRef.current) onClose(); }}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+    <div ref={overlayRef} className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className={`relative w-full ${sizes[size]} bg-[var(--bg-secondary)] rounded-2xl shadow-xl border border-[var(--border-primary)] animate-fade-in max-h-[85vh] flex flex-col`}>
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-primary)]">

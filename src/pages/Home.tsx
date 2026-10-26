@@ -6,7 +6,7 @@ import { courses, pastExams, resources } from '../data/mockData';
 import { BookOpen, FileText, Clock, ArrowRight, TrendingUp, Sparkles, ChevronRight, Play, Library } from 'lucide-react';
 
 export default function Home() {
-  const { user } = useApp();
+  const { user, bookmarks } = useApp();
   const navigate = useNavigate();
 
   const myCourses = courses.filter(c => c.program_id === user?.program_id && c.study_year_id === user?.study_year_id);
@@ -44,7 +44,7 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Active Courses', value: myCourses.length, icon: BookOpen, color: 'text-lilac-500' },
-            { label: 'Resources Saved', value: 12, icon: Library, color: 'text-sky-500' },
+            { label: 'Resources Saved', value: bookmarks.filter(b => b.resource_type === 'resource').length, icon: Library, color: 'text-sky-500' },
             { label: 'Exams Available', value: pastExams.length, icon: FileText, color: 'text-emerald-500' },
             { label: 'Study Hours', value: '24h', icon: Clock, color: 'text-amber-500' },
           ].map((stat, i) => (

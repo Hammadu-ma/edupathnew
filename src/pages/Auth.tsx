@@ -25,6 +25,12 @@ export function SignIn() {
     setLoading(false);
   };
 
+  const handleStudentDemo = async () => {
+    setLoading(true); setError('');
+    await login('sarah.chen@university.edu', 'demo');
+    navigate('/');
+  };
+
   const handleAdminLogin = async () => {
     setLoading(true);
     await loginAsAdmin();
@@ -88,7 +94,7 @@ export function SignIn() {
               onChange={e => setEmail(e.target.value)}
               icon={<Mail className="w-4 h-4" />}
             />
-            <div>
+            <div className="relative">
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
@@ -97,7 +103,7 @@ export function SignIn() {
                 onChange={e => setPassword(e.target.value)}
                 icon={<Lock className="w-4 h-4" />}
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 mt-8 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-[47px] -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)]">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -119,7 +125,7 @@ export function SignIn() {
           <div className="mt-8 pt-6 border-t border-[var(--border-primary)]">
             <p className="text-xs text-[var(--text-tertiary)] text-center mb-3">Demo Access</p>
             <div className="flex gap-2">
-              <Button variant="secondary" size="sm" className="flex-1" onClick={handleSubmit}>
+              <Button variant="secondary" size="sm" className="flex-1" onClick={handleStudentDemo}>
                 Student Demo
               </Button>
               <Button variant="outline" size="sm" className="flex-1" onClick={handleAdminLogin}>

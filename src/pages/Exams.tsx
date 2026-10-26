@@ -119,9 +119,10 @@ export function QuizEngine() {
   };
 
   const handleSubmit = () => {
+    const finalScore = questions.reduce((sum, q) => sum + (answers[q.id] === q.correct_option_id ? q.points : 0), 0);
     setSubmitted(true);
     if (courseId) {
-      addProgress(courseId, 'quiz_attempted', undefined, Math.round((score / totalPoints) * 100));
+      addProgress(courseId, 'quiz_attempted', undefined, totalPoints ? Math.round((finalScore / totalPoints) * 100) : 0);
     }
   };
 

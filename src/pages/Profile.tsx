@@ -14,6 +14,18 @@ export default function Profile() {
   const [toast, setToast] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState('profile');
 
+  const handleUniversityChange = (id: string) => {
+    setUniversityId(id);
+    const firstProgram = programs.find(p => p.university_id === id);
+    setProgramId(firstProgram?.id || '');
+    setStudyYearId(studyYears.find(y => y.program_id === firstProgram?.id)?.id || '');
+  };
+
+  const handleProgramChange = (id: string) => {
+    setProgramId(id);
+    setStudyYearId(studyYears.find(y => y.program_id === id)?.id || '');
+  };
+
   const handleSaveProfile = () => {
     updateUser({ full_name: name, email });
     setToast('Profile updated successfully');
@@ -99,13 +111,13 @@ export default function Profile() {
                   label="University"
                   options={universities.map(u => ({ value: u.id, label: u.name }))}
                   value={universityId}
-                  onChange={setUniversityId}
+                  onChange={handleUniversityChange}
                 />
                 <Select
                   label="Program / Department"
                   options={programs.filter(p => p.university_id === universityId).map(p => ({ value: p.id, label: p.name }))}
                   value={programId}
-                  onChange={setProgramId}
+                  onChange={handleProgramChange}
                 />
                 <Select
                   label="Study Year"

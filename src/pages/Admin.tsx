@@ -166,8 +166,8 @@ export function AdminCourses() {
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Description</label>
             <textarea className="w-full rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent resize-none" rows={3} placeholder="Course description..." />
           </div>
-          <Select label="University" options={universities.map(u => ({ value: u.id, label: u.name }))} value="uni-1" onChange={() => {}} />
-          <Select label="Program" options={programs.map(p => ({ value: p.id, label: p.name }))} value="prog-1" onChange={() => {}} />
+          <Select label="University" options={universities.map(u => ({ value: u.id, label: u.name }))} defaultValue="uni-1" />
+          <Select label="Program" options={programs.map(p => ({ value: p.id, label: p.name }))} defaultValue="prog-1" />
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
             <Button onClick={() => { setShowModal(false); setToast('Course created successfully'); }}>Create Course</Button>
@@ -237,8 +237,8 @@ export function AdminResources() {
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Description</label>
             <textarea className="w-full rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent resize-none" rows={2} placeholder="Brief description..." />
           </div>
-          <Select label="Resource Type" options={[{ value: 'pdf', label: 'PDF Document' }, { value: 'video', label: 'Video' }, { value: 'notes', label: 'Lecture Notes' }, { value: 'textbook', label: 'Textbook' }, { value: 'guide', label: 'Study Guide' }, { value: 'link', label: 'External Link' }]} value="pdf" onChange={() => {}} />
-          <Select label="Course" options={courses.map(c => ({ value: c.id, label: `${c.code} — ${c.title}` }))} value="course-1" onChange={() => {}} />
+          <Select label="Resource Type" options={[{ value: 'pdf', label: 'PDF Document' }, { value: 'video', label: 'Video' }, { value: 'notes', label: 'Lecture Notes' }, { value: 'textbook', label: 'Textbook' }, { value: 'guide', label: 'Study Guide' }, { value: 'link', label: 'External Link' }]} defaultValue="pdf" />
+          <Select label="Course" options={courses.map(c => ({ value: c.id, label: `${c.code} — ${c.title}` }))} defaultValue="course-1" />
           
           {/* File upload area */}
           <div className="border-2 border-dashed border-[var(--border-secondary)] rounded-xl p-8 text-center hover:border-[var(--accent)] transition-colors cursor-pointer">
@@ -385,8 +385,8 @@ export function AdminExams() {
             <>
               <Input label="Exam Title" placeholder="e.g. Final Examination 2024" />
               <div className="grid grid-cols-2 gap-4">
-                <Select label="Course" options={courses.map(c => ({ value: c.id, label: c.code }))} value="course-1" onChange={() => {}} />
-                <Select label="Type" options={[{ value: 'midterm', label: 'Midterm' }, { value: 'final', label: 'Final' }, { value: 'practice', label: 'Practice' }]} value="final" onChange={() => {}} />
+                <Select label="Course" options={courses.map(c => ({ value: c.id, label: c.code }))} defaultValue="course-1" />
+                <Select label="Type" options={[{ value: 'midterm', label: 'Midterm' }, { value: 'final', label: 'Final' }, { value: 'practice', label: 'Practice' }]} defaultValue="final" />
               </div>
               <Input label="Year" type="number" placeholder="2024" />
               <div className="border-2 border-dashed border-[var(--border-secondary)] rounded-xl p-8 text-center">
@@ -396,7 +396,7 @@ export function AdminExams() {
             </>
           ) : (
             <>
-              <Select label="Course" options={courses.map(c => ({ value: c.id, label: `${c.code} — ${c.title}` }))} value="course-1" onChange={() => {}} />
+              <Select label="Course" options={courses.map(c => ({ value: c.id, label: `${c.code} — ${c.title}` }))} defaultValue="course-1" />
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Question Text</label>
                 <textarea className="w-full rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] resize-none" rows={3} placeholder="Enter question..." />
@@ -410,7 +410,7 @@ export function AdminExams() {
                   </div>
                 ))}
               </div>
-              <Select label="Difficulty" options={[{ value: 'easy', label: 'Easy' }, { value: 'medium', label: 'Medium' }, { value: 'hard', label: 'Hard' }]} value="medium" onChange={() => {}} />
+              <Select label="Difficulty" options={[{ value: 'easy', label: 'Easy' }, { value: 'medium', label: 'Medium' }, { value: 'hard', label: 'Hard' }]} defaultValue="medium" />
               <Input label="Points" type="number" placeholder="3" />
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Explanation (optional)</label>

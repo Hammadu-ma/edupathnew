@@ -59,6 +59,11 @@ export function StudentNav() {
             <User className="w-[18px] h-[18px]" />
             Profile
           </NavLink>
+          {user?.role === 'admin' && (
+            <NavLink to="/admin" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">
+              <Shield className="w-[18px] h-[18px]" /> Admin Console
+            </NavLink>
+          )}
           <button onClick={toggleTheme} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] w-full transition-all">
             {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
@@ -207,7 +212,7 @@ export function AdminNav() {
             {theme === 'dark' ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </button>
-          <NavLink to="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">
+          <NavLink to="/studies" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">
             <ChevronRight className="w-[18px] h-[18px]" /> Student View
           </NavLink>
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-red-500 w-full">
@@ -274,6 +279,14 @@ export function AdminNav() {
                 </NavLink>
               ))}
             </nav>
+            <div className="px-3 py-3 border-t border-[var(--border-primary)] space-y-0.5">
+              <NavLink to="/studies" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]">
+                <ChevronRight className="w-[18px] h-[18px]" /> Student View
+              </NavLink>
+              <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-red-500 w-full">
+                <LogOut className="w-[18px] h-[18px]" /> Sign Out
+              </button>
+            </div>
           </div>
         </div>
       )}

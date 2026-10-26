@@ -23,15 +23,26 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
+function loadJSON<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  // Read persisted state synchronously so a page refresh doesn't briefly look
+  // "logged out" (which used to bounce deep links to /auth and then to /).
+  const [user, setUser] = useState<User | null>(() => loadJSON<User | null>('bloom-user', null));
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem('bloom-theme');
     if (saved === 'dark' || saved === 'light') return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
-  const [progress, setProgress] = useState<LearningProgress[]>([]);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadJSON<Bookmark[]>('bloom-bookmarks', []));
+  const [progress, setProgress] = useState<LearningProgress[]>(() => loadJSON<LearningProgress[]>('bloom-progress', []));
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -39,19 +50,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('bloom-user');
-    if (savedUser) {
-      try { setUser(JSON.parse(savedUser)); } catch {}
-    }
-    const savedBookmarks = localStorage.getItem('bloom-bookmarks');
-    if (savedBookmarks) {
-      try { setBookmarks(JSON.parse(savedBookmarks)); } catch {}
-    }
-    const savedProgress = localStorage.getItem('bloom-progress');
-    if (savedProgress) {
-      try { setProgress(JSON.parse(savedProgress)); } catch {}
-    }
-  }, []);
+    if (user) localStorage.setItem('bloom-user', JSON.stringify(user));
+    else localStorage.removeItem('bloom-user');
+  }, [user]);
+
+  useEffect(() => { localStorage.setItem('bloom-bookmarks', JSON.stringify(bookmarks)); }, [bookmarks]);
+  useEffect(() => { localStorage.setItem('bloom-progress', JSON.stringify(progress)); }, [progress]);
 
   const setTheme = useCallback((t: Theme) => setThemeState(t), []);
   const toggleTheme = useCallback(() => setThemeState(prev => prev === 'light' ? 'dark' : 'light'), []);
@@ -59,14 +63,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (_email: string, _password: string) => {
     await new Promise(r => setTimeout(r, 600));
     setUser(mockUser);
-    localStorage.setItem('bloom-user', JSON.stringify(mockUser));
     return true;
   }, []);
 
   const loginAsAdmin = useCallback(async () => {
     await new Promise(r => setTimeout(r, 600));
     setUser(mockAdminUser);
-    localStorage.setItem('bloom-user', JSON.stringify(mockAdminUser));
     return true;
   }, []);
 
@@ -74,20 +76,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await new Promise(r => setTimeout(r, 600));
     const newUser: User = { ...mockUser, full_name: name, onboarding_complete: false, university_id: undefined, program_id: undefined, study_year_id: undefined, semester_id: undefined };
     setUser(newUser);
-    localStorage.setItem('bloom-user', JSON.stringify(newUser));
     return true;
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('bloom-user');
   }, []);
 
   const updateUser = useCallback((updates: Partial<User>) => {
     setUser(prev => {
       if (!prev) return null;
       const updated = { ...prev, ...updates };
-      localStorage.setItem('bloom-user', JSON.stringify(updated));
       return updated;
     });
   }, []);
@@ -103,7 +102,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         created_at: new Date().toISOString(),
       };
       const updated = [...prev, newBookmark];
-      localStorage.setItem('bloom-bookmarks', JSON.stringify(updated));
       return updated;
     });
   }, [user]);
@@ -111,7 +109,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const removeBookmark = useCallback((resourceType: Bookmark['resource_type'], resourceId: string) => {
     setBookmarks(prev => {
       const updated = prev.filter(b => !(b.resource_type === resourceType && b.resource_id === resourceId));
-      localStorage.setItem('bloom-bookmarks', JSON.stringify(updated));
       return updated;
     });
   }, []);
@@ -132,7 +129,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         created_at: new Date().toISOString(),
       };
       const updated = [...prev, entry];
-      localStorage.setItem('bloom-progress', JSON.stringify(updated));
       return updated;
     });
   }, [user]);

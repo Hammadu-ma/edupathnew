@@ -37,9 +37,10 @@ function LoadingScreen() {
   );
 }
 
-function ProtectedRoute({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
+function ProtectedRoute({ children, admin = false, allowIncomplete = false }: { children: React.ReactNode; admin?: boolean; allowIncomplete?: boolean }) {
   const { isAuthenticated, user } = useApp();
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  if (!allowIncomplete && user?.role === 'student' && !user.onboarding_complete) return <Navigate to="/onboarding" replace />;
   if (admin && user?.role !== 'admin') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
@@ -54,7 +55,7 @@ function AppRoutes() {
         <Route path="/auth" element={isAuthenticated ? <Navigate to="/" replace /> : <SignIn />} />
         <Route path="/auth/signup" element={isAuthenticated ? <Navigate to="/" replace /> : <SignUp />} />
         <Route path="/onboarding" element={
-          <ProtectedRoute>
+          <ProtectedRoute allowIncomplete>
             {user?.onboarding_complete ? <Navigate to="/" replace /> : <Onboarding />}
           </ProtectedRoute>
         } />
