@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "DM Serif Display", serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-ink-50: #f4f5f7;
+  --color-ink-100: #e8eaef;
+  --color-ink-200: #d1d5df;
+  --color-ink-300: #a8b0c4;
+  --color-ink-400: #6b7794;
+  --color-ink-500: #4a5470;
+  --color-ink-600: #363e54;
+  --color-ink-700: #252b3d;
+  --color-ink-800: #1a1f2e;
+  --color-ink-900: #0f1219;
+  --color-ink-950: #080a0f;
+
+  --color-midnight-50: #eef0f8;
+  --color-midnight-100: #d4d8ed;
+  --color-midnight-200: #a9b1db;
+  --color-midnight-300: #7e8ac9;
+  --color-midnight-400: #5363b7;
+  --color-midnight-500: #2d3f8f;
+  --color-midnight-600: #1e2d6b;
+  --color-midnight-700: #152050;
+  --color-midnight-800: #0f1729;
+  --color-midnight-900: #0a0f1c;
+  --color-midnight-950: #060912;
+
+  --color-lilac-50: #f5f0ff;
+  --color-lilac-100: #ede5ff;
+  --color-lilac-200: #d4c0ff;
+  --color-lilac-300: #b794f6;
+  --color-lilac-400: #9b6dff;
+  --color-lilac-500: #8b5cf6;
+  --color-lilac-600: #7340e0;
+  --color-lilac-700: #5b2bc0;
+  --color-lilac-800: #45208f;
+  --color-lilac-900: #2f1660;
+
+  --color-coral-400: #fb7185;
+  --color-coral-500: #f43f5e;
+
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+
+  --color-surface-light: #ffffff;
+  --color-surface-light-alt: #f8f7f4;
+  --color-surface-light-muted: #f1f0ed;
+
+  --color-surface-dark: #12141c;
+  --color-surface-dark-alt: #1a1d28;
+  --color-surface-dark-muted: #22252f;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light theme */
+:root {
+  --bg-primary: #f8f7f4;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f0ed;
+  --bg-elevated: #ffffff;
+  --text-primary: #0f1219;
+  --text-secondary: #4a5470;
+  --text-tertiary: #6b7794;
+  --text-inverse: #ffffff;
+  --border-primary: #e8eaef;
+  --border-secondary: #d1d5df;
+  --accent: #8b5cf6;
+  --accent-hover: #7340e0;
+  --accent-subtle: #f5f0ff;
+  --shadow-sm: 0 1px 2px rgba(15, 18, 25, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 18, 25, 0.06);
+  --shadow-lg: 0 12px 32px rgba(15, 18, 25, 0.08);
+  --shadow-xl: 0 20px 48px rgba(15, 18, 25, 0.12);
+}
+
+/* Dark theme */
+.dark {
+  --bg-primary: #0c0e14;
+  --bg-secondary: #12141c;
+  --bg-tertiary: #1a1d28;
+  --bg-elevated: #1e2130;
+  --text-primary: #f4f5f7;
+  --text-secondary: #a8b0c4;
+  --text-tertiary: #6b7794;
+  --text-inverse: #0f1219;
+  --border-primary: #22252f;
+  --border-secondary: #2d3140;
+  --accent: #9b6dff;
+  --accent-hover: #b794f6;
+  --accent-subtle: #1a1530;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
