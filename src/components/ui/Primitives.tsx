@@ -240,3 +240,36 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
     </label>
   );
 }
+
+// Textarea
+export function Textarea({ label, className = '', ...props }: { label?: string; className?: string } & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <div className={className}>
+      {label && <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">{label}</label>}
+      <textarea
+        className="w-full rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent resize-none"
+        rows={3}
+        {...props}
+      />
+    </div>
+  );
+}
+
+// Full-area spinner
+export function PageLoader({ label = 'Loading…' }: { label?: string }) {
+  return (
+    <div className="flex items-center justify-center gap-2 py-24 text-sm text-[var(--text-tertiary)]">
+      <Loader2 className="w-4 h-4 animate-spin" /> {label}
+    </div>
+  );
+}
+
+// Inline error
+export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-400 p-4 text-sm flex items-center justify-between gap-4">
+      <span>{message}</span>
+      {onRetry && <button onClick={onRetry} className="font-medium underline">Retry</button>}
+    </div>
+  );
+}

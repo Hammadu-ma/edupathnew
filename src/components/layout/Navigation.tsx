@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
-import { Home, BookOpen, Library, FileText, Bookmark, User, LogOut, Sun, Moon, Menu, X, GraduationCap, Settings, Shield, ChevronRight } from 'lucide-react';
+import { Home, BookOpen, Library, FileText, Bookmark, User, LogOut, Sun, Moon, Menu, X, GraduationCap, Settings, Shield, ChevronRight, TrendingUp, Users, Layers } from 'lucide-react';
 
 export function StudentNav() {
-  const { user, theme, toggleTheme, logout } = useApp();
+  const { user, theme, toggleTheme, signOut } = useApp();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,10 +14,11 @@ export function StudentNav() {
     { to: '/studies', icon: BookOpen, label: 'My Studies' },
     { to: '/resources', icon: Library, label: 'Resources' },
     { to: '/exams', icon: FileText, label: 'Past Exams' },
+    { to: '/progress', icon: TrendingUp, label: 'Progress' },
     { to: '/bookmarks', icon: Bookmark, label: 'Saved' },
   ];
 
-  const handleLogout = () => { logout(); navigate('/auth'); };
+  const handleLogout = () => { void signOut(); navigate('/auth'); };
 
   return (
     <>
@@ -156,20 +157,21 @@ export function StudentNav() {
 }
 
 export function AdminNav() {
-  const { user, theme, toggleTheme, logout } = useApp();
+  const { user, theme, toggleTheme, signOut } = useApp();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const links = [
     { to: '/admin', icon: Shield, label: 'Dashboard' },
+    { to: '/admin/structure', icon: Layers, label: 'Structure' },
     { to: '/admin/courses', icon: BookOpen, label: 'Courses' },
     { to: '/admin/resources', icon: Library, label: 'Resources' },
     { to: '/admin/exams', icon: FileText, label: 'Examinations' },
-    { to: '/admin/settings', icon: Settings, label: 'Settings' },
+    { to: '/admin/users', icon: Users, label: 'Users' },
   ];
 
-  const handleLogout = () => { logout(); navigate('/auth'); };
+  const handleLogout = () => { void signOut(); navigate('/auth'); };
 
   return (
     <>

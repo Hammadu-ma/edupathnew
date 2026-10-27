@@ -1,137 +1,104 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './contexts/AppContext';
+import { CatalogProvider } from './contexts/CatalogContext';
 import { StudentLayout, AdminLayout } from './components/layout/Navigation';
+import { isConfigured } from './lib/supabase';
 
-// Lazy load pages
-const SignIn = lazy(() => import('./pages/Auth').then(m => ({ default: m.SignIn })));
-const SignUp = lazy(() => import('./pages/Auth').then(m => ({ default: m.SignUp })));
-const Onboarding = lazy(() => import('./pages/Auth').then(m => ({ default: m.Onboarding })));
+const named = <T extends Record<string, any>>(load: () => Promise<T>, key: keyof T) =>
+  lazy(() => load().then(m => ({ default: m[key] as React.ComponentType })));
+
+const SignIn = named(() => import('./pages/Auth'), 'SignIn');
+const SignUp = named(() => import('./pages/Auth'), 'SignUp');
+const ForgotPassword = named(() => import('./pages/Auth'), 'ForgotPassword');
+const ResetPassword = named(() => import('./pages/Auth'), 'ResetPassword');
+const Onboarding = named(() => import('./pages/Auth'), 'Onboarding');
 const Home = lazy(() => import('./pages/Home'));
-const MyStudies = lazy(() => import('./pages/Studies').then(m => ({ default: m.MyStudies })));
-const CourseDetail = lazy(() => import('./pages/Studies').then(m => ({ default: m.CourseDetail })));
+const MyStudies = named(() => import('./pages/Studies'), 'MyStudies');
+const CourseDetail = named(() => import('./pages/Studies'), 'CourseDetail');
 const Resources = lazy(() => import('./pages/Resources'));
-const PastExams = lazy(() => import('./pages/Exams').then(m => ({ default: m.default })));
-const QuizEngine = lazy(() => import('./pages/Exams').then(m => ({ default: m.QuizEngine })));
+const PastExams = lazy(() => import('./pages/Exams'));
+const QuizEngine = named(() => import('./pages/Exams'), 'QuizEngine');
 const Bookmarks = lazy(() => import('./pages/Bookmarks'));
+const Progress = lazy(() => import('./pages/Progress'));
 const Profile = lazy(() => import('./pages/Profile'));
-const AdminDashboard = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminDashboard })));
-const AdminCourses = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminCourses })));
-const AdminResources = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminResources })));
-const AdminExams = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminExams })));
-const AdminSettings = lazy(() => import('./pages/Admin').then(m => ({ default: m.AdminSettings })));
+const AdminDashboard = named(() => import('./pages/Admin'), 'AdminDashboard');
+const AdminStructure = named(() => import('./pages/Admin'), 'AdminStructure');
+const AdminCourses = named(() => import('./pages/Admin'), 'AdminCourses');
+const AdminResources = named(() => import('./pages/Admin'), 'AdminResources');
+const AdminExams = named(() => import('./pages/Admin'), 'AdminExams');
+const AdminUsers = named(() => import('./pages/Admin'), 'AdminUsers');
 
 function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <div className="text-center">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-purple-400 flex items-center justify-center mx-auto mb-4 animate-pulse">
-          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
-        </div>
-        <p className="text-sm text-[var(--text-tertiary)]">Loading...</p>
+      <p className="text-sm text-[var(--text-tertiary)] animate-pulse">Loading...</p>
+    </div>
+  );
+}
+
+function SetupScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="max-w-lg rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-8">
+        <h1 className="font-display text-2xl text-[var(--text-primary)] mb-3">Connect Supabase</h1>
+        <ol className="list-decimal ml-5 space-y-2 text-sm text-[var(--text-secondary)]">
+          <li>Create a project at supabase.com.</li>
+          <li>Run <code>supabase/schema.sql</code> (and optionally <code>seed.sql</code>) in the SQL editor.</li>
+          <li>Copy <code>.env.example</code> to <code>.env.local</code> and fill in your project URL and anon key.</li>
+          <li>Restart <code>npm run dev</code>.</li>
+        </ol>
       </div>
     </div>
   );
 }
 
 function ProtectedRoute({ children, admin = false, allowIncomplete = false }: { children: React.ReactNode; admin?: boolean; allowIncomplete?: boolean }) {
-  const { isAuthenticated, user } = useApp();
+  const { isAuthenticated, user, loading } = useApp();
+  if (loading) return <LoadingScreen />;
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
   if (!allowIncomplete && user?.role === 'student' && !user.onboarding_complete) return <Navigate to="/onboarding" replace />;
   if (admin && user?.role !== 'admin') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
+const Student = ({ children }: { children: React.ReactNode }) => <ProtectedRoute><StudentLayout>{children}</StudentLayout></ProtectedRoute>;
+const Admin = ({ children }: { children: React.ReactNode }) => <ProtectedRoute admin><AdminLayout>{children}</AdminLayout></ProtectedRoute>;
+
 function AppRoutes() {
-  const { isAuthenticated, user } = useApp();
+  const { isAuthenticated, user, loading } = useApp();
+  if (loading) return <LoadingScreen />;
+  const guest = (el: React.ReactNode) => (isAuthenticated ? <Navigate to="/" replace /> : el);
 
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
-        {/* Auth routes */}
-        <Route path="/auth" element={isAuthenticated ? <Navigate to="/" replace /> : <SignIn />} />
-        <Route path="/auth/signup" element={isAuthenticated ? <Navigate to="/" replace /> : <SignUp />} />
+        <Route path="/auth" element={guest(<SignIn />)} />
+        <Route path="/auth/signup" element={guest(<SignUp />)} />
+        <Route path="/auth/forgot" element={guest(<ForgotPassword />)} />
+        {/* the emailed recovery link signs the user in first, so this must work while authenticated */}
+        <Route path="/auth/reset" element={<ResetPassword />} />
         <Route path="/onboarding" element={
-          <ProtectedRoute allowIncomplete>
-            {user?.onboarding_complete ? <Navigate to="/" replace /> : <Onboarding />}
-          </ProtectedRoute>
+          <ProtectedRoute allowIncomplete>{user?.onboarding_complete ? <Navigate to="/" replace /> : <Onboarding />}</ProtectedRoute>
         } />
 
-        {/* Student routes */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            {user?.role === 'admin' ? <Navigate to="/admin" replace /> : (
-              <StudentLayout><Home /></StudentLayout>
-            )}
-          </ProtectedRoute>
-        } />
-        <Route path="/studies" element={
-          <ProtectedRoute>
-            <StudentLayout><MyStudies /></StudentLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/course/:id" element={
-          <ProtectedRoute>
-            <StudentLayout><CourseDetail /></StudentLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/resources" element={
-          <ProtectedRoute>
-            <StudentLayout><Resources /></StudentLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/exams" element={
-          <ProtectedRoute>
-            <StudentLayout><PastExams /></StudentLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/quiz/:courseId" element={
-          <ProtectedRoute>
-            <StudentLayout><QuizEngine /></StudentLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/bookmarks" element={
-          <ProtectedRoute>
-            <StudentLayout><Bookmarks /></StudentLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <StudentLayout><Profile /></StudentLayout>
-          </ProtectedRoute>
-        } />
+        <Route path="/" element={<ProtectedRoute>{user?.role === 'admin' ? <Navigate to="/admin" replace /> : <StudentLayout><Home /></StudentLayout>}</ProtectedRoute>} />
+        <Route path="/studies" element={<Student><MyStudies /></Student>} />
+        <Route path="/course/:id" element={<Student><CourseDetail /></Student>} />
+        <Route path="/resources" element={<Student><Resources /></Student>} />
+        <Route path="/exams" element={<Student><PastExams /></Student>} />
+        <Route path="/quiz/:courseId" element={<Student><QuizEngine /></Student>} />
+        <Route path="/bookmarks" element={<Student><Bookmarks /></Student>} />
+        <Route path="/progress" element={<Student><Progress /></Student>} />
+        <Route path="/profile" element={<Student><Profile /></Student>} />
 
-        {/* Admin routes */}
-        <Route path="/admin" element={
-          <ProtectedRoute admin>
-            <AdminLayout><AdminDashboard /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/courses" element={
-          <ProtectedRoute admin>
-            <AdminLayout><AdminCourses /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/resources" element={
-          <ProtectedRoute admin>
-            <AdminLayout><AdminResources /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/exams" element={
-          <ProtectedRoute admin>
-            <AdminLayout><AdminExams /></AdminLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/settings" element={
-          <ProtectedRoute admin>
-            <AdminLayout><AdminSettings /></AdminLayout>
-          </ProtectedRoute>
-        } />
+        <Route path="/admin" element={<Admin><AdminDashboard /></Admin>} />
+        <Route path="/admin/structure" element={<Admin><AdminStructure /></Admin>} />
+        <Route path="/admin/courses" element={<Admin><AdminCourses /></Admin>} />
+        <Route path="/admin/resources" element={<Admin><AdminResources /></Admin>} />
+        <Route path="/admin/exams" element={<Admin><AdminExams /></Admin>} />
+        <Route path="/admin/users" element={<Admin><AdminUsers /></Admin>} />
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
@@ -139,10 +106,13 @@ function AppRoutes() {
 }
 
 export default function App() {
+  if (!isConfigured) return <SetupScreen />;
   return (
     <BrowserRouter>
       <AppProvider>
-        <AppRoutes />
+        <CatalogProvider>
+          <AppRoutes />
+        </CatalogProvider>
       </AppProvider>
     </BrowserRouter>
   );

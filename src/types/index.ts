@@ -1,154 +1,125 @@
-export interface User {
+export type Theme = 'light' | 'dark';
+export type Role = 'student' | 'admin';
+
+export interface Profile {
   id: string;
-  email: string;
-  full_name: string;
-  avatar_url?: string;
-  role: 'student' | 'admin';
-  university_id?: string;
-  program_id?: string;
-  study_year_id?: string;
-  semester_id?: string;
+  email: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: Role;
+  is_active: boolean;
+  university_id: string | null;
+  program_id: string | null;
+  study_year_id: string | null;
+  term_id: string | null;
   onboarding_complete: boolean;
+  preferences: Record<string, any>;
   created_at: string;
 }
 
-export interface University {
-  id: string;
-  name: string;
-  code: string;
-  country: string;
-  logo_url?: string;
-  is_active: boolean;
-}
-
-export interface Program {
-  id: string;
-  university_id: string;
-  name: string;
-  code: string;
-  description?: string;
-  is_active: boolean;
-}
-
-export interface StudyYear {
-  id: string;
-  program_id: string;
-  name: string;
-  year_number: number;
-  is_active: boolean;
-}
-
-export interface Semester {
-  id: string;
-  study_year_id: string;
-  name: string;
-  semester_number: number;
-  is_active: boolean;
-}
+export interface University { id: string; name: string; code: string | null; country: string | null; logo_url: string | null; is_active: boolean; }
+export interface Program { id: string; university_id: string; name: string; code: string | null; description: string | null; is_active: boolean; }
+export interface StudyYear { id: string; program_id: string; name: string; sort_order: number; is_active: boolean; }
+export interface Term { id: string; study_year_id: string; name: string; kind: string; sort_order: number; is_active: boolean; }
 
 export interface Course {
   id: string;
-  code: string;
-  title: string;
-  description: string;
-  credits: number;
   university_id: string;
   program_id: string;
-  study_year_id?: string;
-  semester_id?: string;
+  study_year_id: string | null;
+  term_id: string | null;
+  code: string;
+  title: string;
+  description: string | null;
+  credits: number | null;
   cover_color: string;
-  cover_pattern: string;
   is_published: boolean;
   created_at: string;
-  resource_count?: number;
-  exam_count?: number;
 }
+export interface CourseStats { resource_count: number; exam_count: number; question_count: number; }
 
-export interface LearningResource {
+export type ResourceType = 'notes' | 'book' | 'pdf' | 'video' | 'slides' | 'guide' | 'link' | 'other';
+export interface Resource {
   id: string;
   course_id: string;
   title: string;
-  description?: string;
-  type: 'pdf' | 'video' | 'textbook' | 'notes' | 'guide' | 'link' | 'practice';
-  file_url?: string;
-  file_size?: number;
-  external_url?: string;
+  description: string | null;
+  type: ResourceType;
+  file_path: string | null;
+  external_url: string | null;
+  file_size: number | null;
   is_published: boolean;
   created_at: string;
-  uploaded_by?: string;
 }
 
+export type ExamType = 'midterm' | 'final' | 'quiz' | 'supplementary' | 'practice';
 export interface PastExam {
   id: string;
   course_id: string;
   title: string;
-  year: number;
-  semester?: string;
-  exam_type: 'midterm' | 'final' | 'quiz' | 'supplementary' | 'practice';
-  file_url?: string;
+  exam_year: number;
+  exam_type: ExamType;
+  semester_label: string | null;
+  file_path: string | null;
+  answers_file_path: string | null;
   has_answers: boolean;
   has_explanations: boolean;
   is_published: boolean;
   created_at: string;
 }
 
-export interface QuizQuestion {
+export interface QuestionOption { id: string; text: string; }
+export interface Question {
   id: string;
-  exam_id?: string;
   course_id: string;
+  exam_id: string | null;
   question_text: string;
-  question_image?: string;
-  options: QuizOption[];
+  options: QuestionOption[];
   correct_option_id: string;
-  explanation?: string;
+  explanation: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   points: number;
   order_index: number;
+  is_published: boolean;
 }
 
-export interface QuizOption {
-  id: string;
-  text: string;
-  is_correct: boolean;
-}
+export type BookmarkType = 'course' | 'resource' | 'exam' | 'question';
+export interface Bookmark { id: string; user_id: string; item_type: BookmarkType; item_id: string; created_at: string; }
 
 export interface QuizAttempt {
   id: string;
   user_id: string;
-  course_id: string;
-  exam_id?: string;
-  questions: QuizQuestion[];
+  course_id: string | null;
+  exam_id: string | null;
+  mode: 'practice' | 'exam';
+  question_ids: string[];
   answers: Record<string, string>;
   score: number;
   total_points: number;
+  time_spent_seconds: number | null;
   started_at: string;
-  completed_at?: string;
-  time_spent_seconds?: number;
+  completed_at: string;
 }
 
-export interface Bookmark {
+export type ActivityAction = 'opened' | 'downloaded' | 'completed' | 'quiz_attempted';
+export interface Activity {
   id: string;
   user_id: string;
-  resource_type: 'course' | 'resource' | 'exam';
-  resource_id: string;
+  course_id: string | null;
+  resource_id: string | null;
+  action: ActivityAction;
   created_at: string;
+  resource?: { id: string; title: string; type: ResourceType } | null;
 }
 
-export interface LearningProgress {
+export interface Completion { resource_id: string; course_id: string | null; completed_at: string; }
+
+export interface Goal {
   id: string;
-  user_id: string;
-  course_id: string;
-  resource_id?: string;
-  action: 'opened' | 'completed' | 'quiz_attempted';
-  score?: number;
+  title: string;
+  kind: 'resources' | 'quizzes' | 'custom';
+  target: number;
+  due_date: string | null;
+  is_done: boolean;
   created_at: string;
-}
-
-export type Theme = 'light' | 'dark';
-
-export interface AppState {
-  user: User | null;
-  theme: Theme;
-  isAuthenticated: boolean;
-  isLoading: boolean;
 }

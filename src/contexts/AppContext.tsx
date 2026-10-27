@@ -1,147 +1,182 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, Theme, Bookmark, LearningProgress } from '../types';
-import { mockUser, mockAdminUser } from '../data/mockData';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
+import type { ActivityAction, Bookmark, BookmarkType, Completion, Profile, Theme } from '../types';
 
 interface AppContextType {
-  user: User | null;
-  theme: Theme;
+  user: Profile | null;
+  session: Session | null;
+  loading: boolean;
   isAuthenticated: boolean;
-  bookmarks: Bookmark[];
-  progress: LearningProgress[];
-  setTheme: (theme: Theme) => void;
+  recoveryMode: boolean;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
   toggleTheme: () => void;
-  login: (email: string, password: string) => Promise<boolean>;
-  loginAsAdmin: () => Promise<boolean>;
-  signup: (email: string, password: string, name: string) => Promise<boolean>;
-  logout: () => void;
-  updateUser: (updates: Partial<User>) => void;
-  addBookmark: (resourceType: Bookmark['resource_type'], resourceId: string) => void;
-  removeBookmark: (resourceType: Bookmark['resource_type'], resourceId: string) => void;
-  isBookmarked: (resourceType: Bookmark['resource_type'], resourceId: string) => boolean;
-  addProgress: (courseId: string, action: LearningProgress['action'], resourceId?: string, score?: number) => void;
+  signIn: (email: string, password: string) => Promise<string | null>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  signOut: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<string | null>;
+  updatePassword: (password: string) => Promise<string | null>;
+  updateProfile: (patch: Partial<Profile>) => Promise<string | null>;
+  bookmarks: Bookmark[];
+  isBookmarked: (type: BookmarkType, id: string) => boolean;
+  toggleBookmark: (type: BookmarkType, id: string) => Promise<void>;
+  completions: Completion[];
+  isCompleted: (resourceId: string) => boolean;
+  toggleCompleted: (resourceId: string, courseId: string) => Promise<void>;
+  logActivity: (action: ActivityAction, courseId?: string | null, resourceId?: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
-function loadJSON<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  // Read persisted state synchronously so a page refresh doesn't briefly look
-  // "logged out" (which used to bounce deep links to /auth and then to /).
-  const [user, setUser] = useState<User | null>(() => loadJSON<User | null>('bloom-user', null));
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [completions, setCompletions] = useState<Completion[]>([]);
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem('bloom-theme');
     if (saved === 'dark' || saved === 'light') return saved;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => loadJSON<Bookmark[]>('bloom-bookmarks', []));
-  const [progress, setProgress] = useState<LearningProgress[]>(() => loadJSON<LearningProgress[]>('bloom-progress', []));
 
+  // ----- theme -----
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('bloom-theme', theme);
   }, [theme]);
-
-  useEffect(() => {
-    if (user) localStorage.setItem('bloom-user', JSON.stringify(user));
-    else localStorage.removeItem('bloom-user');
-  }, [user]);
-
-  useEffect(() => { localStorage.setItem('bloom-bookmarks', JSON.stringify(bookmarks)); }, [bookmarks]);
-  useEffect(() => { localStorage.setItem('bloom-progress', JSON.stringify(progress)); }, [progress]);
-
   const setTheme = useCallback((t: Theme) => setThemeState(t), []);
-  const toggleTheme = useCallback(() => setThemeState(prev => prev === 'light' ? 'dark' : 'light'), []);
+  const toggleTheme = useCallback(() => setThemeState(p => (p === 'light' ? 'dark' : 'light')), []);
 
-  const login = useCallback(async (_email: string, _password: string) => {
-    await new Promise(r => setTimeout(r, 600));
-    setUser(mockUser);
-    return true;
-  }, []);
-
-  const loginAsAdmin = useCallback(async () => {
-    await new Promise(r => setTimeout(r, 600));
-    setUser(mockAdminUser);
-    return true;
-  }, []);
-
-  const signup = useCallback(async (_email: string, _password: string, name: string) => {
-    await new Promise(r => setTimeout(r, 600));
-    const newUser: User = { ...mockUser, full_name: name, onboarding_complete: false, university_id: undefined, program_id: undefined, study_year_id: undefined, semester_id: undefined };
-    setUser(newUser);
-    return true;
-  }, []);
-
-  const logout = useCallback(() => {
-    setUser(null);
-  }, []);
-
-  const updateUser = useCallback((updates: Partial<User>) => {
-    setUser(prev => {
-      if (!prev) return null;
-      const updated = { ...prev, ...updates };
-      return updated;
+  // ----- session -----
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      if (!data.session) setLoading(false);
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
+      if (event === 'SIGNED_OUT') { setRecoveryMode(false); }
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  const addBookmark = useCallback((resourceType: Bookmark['resource_type'], resourceId: string) => {
-    setBookmarks(prev => {
-      if (prev.some(b => b.resource_type === resourceType && b.resource_id === resourceId)) return prev;
-      const newBookmark: Bookmark = {
-        id: `bm-${Date.now()}`,
-        user_id: user?.id || '',
-        resource_type: resourceType,
-        resource_id: resourceId,
-        created_at: new Date().toISOString(),
-      };
-      const updated = [...prev, newBookmark];
-      return updated;
-    });
-  }, [user]);
+  // ----- load profile + personal data whenever the signed-in user changes -----
+  const uid = session?.user.id;
+  useEffect(() => {
+    if (!uid) { setUser(null); setBookmarks([]); setCompletions([]); return; }
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      try {
+        const [p, b, c] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
+          supabase.from('bookmarks').select('*'),
+          supabase.from('resource_completions').select('resource_id,course_id,completed_at'),
+        ]);
+        if (cancelled) return;
+        if (p.data && !p.data.is_active) { await supabase.auth.signOut(); return; }
+        setUser((p.data as Profile) ?? null);
+        setBookmarks((b.data as Bookmark[]) ?? []);
+        setCompletions((c.data as Completion[]) ?? []);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [uid]);
 
-  const removeBookmark = useCallback((resourceType: Bookmark['resource_type'], resourceId: string) => {
-    setBookmarks(prev => {
-      const updated = prev.filter(b => !(b.resource_type === resourceType && b.resource_id === resourceId));
-      return updated;
-    });
+  // ----- auth actions -----
+  const signIn = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? error.message : null;
   }, []);
 
-  const isBookmarked = useCallback((resourceType: Bookmark['resource_type'], resourceId: string) => {
-    return bookmarks.some(b => b.resource_type === resourceType && b.resource_id === resourceId);
-  }, [bookmarks]);
-
-  const addProgress = useCallback((courseId: string, action: LearningProgress['action'], resourceId?: string, score?: number) => {
-    setProgress(prev => {
-      const entry: LearningProgress = {
-        id: `lp-${Date.now()}`,
-        user_id: user?.id || '',
-        course_id: courseId,
-        resource_id: resourceId,
-        action,
-        score,
-        created_at: new Date().toISOString(),
-      };
-      const updated = [...prev, entry];
-      return updated;
+  const signUp = useCallback(async (email: string, password: string, name: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email, password, options: { data: { full_name: name } },
     });
-  }, [user]);
+    if (error) return { error: error.message };
+    // With email confirmation enabled Supabase returns a user but no session.
+    return { needsConfirmation: !data.session };
+  }, []);
 
-  return (
-    <AppContext.Provider value={{
-      user, theme, isAuthenticated: !!user, bookmarks, progress,
-      setTheme, toggleTheme, login, loginAsAdmin, signup, logout, updateUser,
-      addBookmark, removeBookmark, isBookmarked, addProgress,
-    }}>
-      {children}
-    </AppContext.Provider>
+  const signOut = useCallback(async () => { await supabase.auth.signOut(); }, []);
+
+  const sendPasswordReset = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset`,
+    });
+    return error ? error.message : null;
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (!error) setRecoveryMode(false);
+    return error ? error.message : null;
+  }, []);
+
+  const updateProfile = useCallback(async (patch: Partial<Profile>) => {
+    if (!uid) return 'Not signed in';
+    const { data, error } = await supabase.from('profiles').update(patch).eq('id', uid).select('*').single();
+    if (error) return error.message;
+    setUser(data as Profile);
+    return null;
+  }, [uid]);
+
+  // ----- bookmarks -----
+  const isBookmarked = useCallback(
+    (type: BookmarkType, id: string) => bookmarks.some(b => b.item_type === type && b.item_id === id),
+    [bookmarks],
   );
+
+  const toggleBookmark = useCallback(async (type: BookmarkType, id: string) => {
+    if (!uid) return;
+    const existing = bookmarks.find(b => b.item_type === type && b.item_id === id);
+    if (existing) {
+      setBookmarks(prev => prev.filter(b => b.id !== existing.id));
+      const { error } = await supabase.from('bookmarks').delete().eq('id', existing.id);
+      if (error) setBookmarks(prev => [...prev, existing]);
+    } else {
+      const { data } = await supabase.from('bookmarks')
+        .insert({ user_id: uid, item_type: type, item_id: id }).select('*').single();
+      if (data) setBookmarks(prev => [...prev, data as Bookmark]);
+    }
+  }, [uid, bookmarks]);
+
+  // ----- activity & completion -----
+  const logActivity = useCallback((action: ActivityAction, courseId?: string | null, resourceId?: string | null) => {
+    if (!uid) return;
+    void supabase.from('study_activity').insert({ user_id: uid, action, course_id: courseId ?? null, resource_id: resourceId ?? null });
+  }, [uid]);
+
+  const isCompleted = useCallback((rid: string) => completions.some(c => c.resource_id === rid), [completions]);
+
+  const toggleCompleted = useCallback(async (resourceId: string, courseId: string) => {
+    if (!uid) return;
+    if (completions.some(c => c.resource_id === resourceId)) {
+      setCompletions(prev => prev.filter(c => c.resource_id !== resourceId));
+      await supabase.from('resource_completions').delete().eq('resource_id', resourceId).eq('user_id', uid);
+    } else {
+      const row = { resource_id: resourceId, course_id: courseId, completed_at: new Date().toISOString() };
+      setCompletions(prev => [...prev, row]);
+      const { error } = await supabase.from('resource_completions').insert({ ...row, user_id: uid });
+      if (error) setCompletions(prev => prev.filter(c => c.resource_id !== resourceId));
+      else logActivity('completed', courseId, resourceId);
+    }
+  }, [uid, completions, logActivity]);
+
+  const value = useMemo<AppContextType>(() => ({
+    user, session, loading, isAuthenticated: !!user, recoveryMode, theme, setTheme, toggleTheme,
+    signIn, signUp, signOut, sendPasswordReset, updatePassword, updateProfile,
+    bookmarks, isBookmarked, toggleBookmark, completions, isCompleted, toggleCompleted, logActivity,
+  }), [user, session, loading, recoveryMode, theme, setTheme, toggleTheme, signIn, signUp, signOut, sendPasswordReset,
+    updatePassword, updateProfile, bookmarks, isBookmarked, toggleBookmark, completions, isCompleted, toggleCompleted, logActivity]);
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
