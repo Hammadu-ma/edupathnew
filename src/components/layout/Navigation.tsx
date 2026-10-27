@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
-import { Home, BookOpen, Library, FileText, Bookmark, User, LogOut, Sun, Moon, Menu, X, GraduationCap, Settings, Shield, ChevronRight, TrendingUp, Users, Layers } from 'lucide-react';
+import { Home, BookOpen, Library, FileText, Bookmark, User, LogOut, Sun, Moon, Menu, X, GraduationCap, Settings, Shield, ChevronRight, TrendingUp, Users, Layers, Film } from 'lucide-react';
 
 export function StudentNav() {
   const { user, theme, toggleTheme, signOut } = useApp();
@@ -164,6 +164,7 @@ export function AdminNav() {
 
   const links = [
     { to: '/admin', icon: Shield, label: 'Dashboard' },
+    { to: '/admin/content', icon: Film, label: 'Content' },
     { to: '/admin/structure', icon: Layers, label: 'Structure' },
     { to: '/admin/courses', icon: BookOpen, label: 'Courses' },
     { to: '/admin/resources', icon: Library, label: 'Resources' },

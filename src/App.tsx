@@ -22,6 +22,7 @@ const Bookmarks = lazy(() => import('./pages/Bookmarks'));
 const Progress = lazy(() => import('./pages/Progress'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AdminDashboard = named(() => import('./pages/Admin'), 'AdminDashboard');
+const AdminContent = lazy(() => import('./pages/AdminContent'));
 const AdminStructure = named(() => import('./pages/Admin'), 'AdminStructure');
 const AdminCourses = named(() => import('./pages/Admin'), 'AdminCourses');
 const AdminResources = named(() => import('./pages/Admin'), 'AdminResources');
@@ -77,6 +78,7 @@ function AppRoutes() {
 
         <Route path="/admin" element={<Admin><AdminDashboard /></Admin>} />
         <Route path="/admin/structure" element={<Admin><AdminStructure /></Admin>} />
+        <Route path="/admin/content" element={<Admin><AdminContent /></Admin>} />
         <Route path="/admin/courses" element={<Admin><AdminCourses /></Admin>} />
         <Route path="/admin/resources" element={<Admin><AdminResources /></Admin>} />
         <Route path="/admin/exams" element={<Admin><AdminExams /></Admin>} />

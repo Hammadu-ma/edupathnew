@@ -7,21 +7,21 @@ export async function unwrap<T>(p: PromiseLike<{ data: T | null; error: { messag
   return data as T;
 }
 
-export async function signedUrl(path: string, download = false): Promise<string> {
+export async function signedUrl(path: string, download = false, bucket = 'resources'): Promise<string> {
   const { data, error } = await supabase.storage
-    .from('resources')
+    .from(bucket)
     .createSignedUrl(path, 3600, download ? { download: true } : undefined);
   if (error || !data) throw new Error(error?.message || 'Could not create download link');
   return data.signedUrl;
 }
 
 /** Open an external link or a private storage file in a new tab. */
-export async function openFile(opts: { path?: string | null; url?: string | null; download?: boolean }) {
+export async function openFile(opts: { path?: string | null; url?: string | null; download?: boolean; bucket?: string }) {
   if (opts.url) { window.open(opts.url, '_blank', 'noopener'); return; }
   if (!opts.path) throw new Error('This item has no file attached yet.');
   const w = window.open('', '_blank'); // open synchronously so popup blockers allow it
   try {
-    const u = await signedUrl(opts.path, opts.download);
+    const u = await signedUrl(opts.path, opts.download, opts.bucket);
     if (w) w.location.href = u; else window.location.href = u;
   } catch (e) { w?.close(); throw e; }
 }

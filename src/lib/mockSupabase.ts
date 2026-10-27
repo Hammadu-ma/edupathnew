@@ -24,6 +24,10 @@ function seed(): DB {
   const profile = (id: string, email: string, full_name: string, role: string, extra: Row = {}) =>
     ({ id, email, full_name, avatar_url: null, role, is_active: true, university_id: null, program_id: null, study_year_id: null, term_id: null, onboarding_complete: true, preferences: {}, created_at: ago(80), ...extra });
 
+  const ci = (id: string, kind: string, title: string, subject_id: string, attachment_id: string, topic_id: string | null, author_id: string, access: string, is_published: boolean, d: number, university_id: string | null = null) =>
+    ({ id, kind, title, description: null, university_id, attachment_id, subject_id, topic_id, author_id, thumbnail_url: null, access, is_published, created_at: ago(d) });
+  const asset = (item_id: string, url: string) => ({ id: 'as-' + item_id, item_id, source_type: 'external', url, file_path: null, file_size: null });
+
   return {
     auth: [
       { id: 'u-student', email: 'student@demo.com', password: 'demo1234' },
@@ -93,6 +97,47 @@ function seed(): DB {
         q('q-9', 'c-2', 'ex-3', 'Which scheduling policy can cause starvation of long jobs?', opt('Round robin', 'FCFS', 'Shortest job first', 'Multilevel feedback with aging'), 'c', 'SJF keeps favouring short jobs, so long jobs may wait indefinitely.', 'medium', 3, 2),
         q('q-10', 'c-7', 'ex-4', 'The first law of thermodynamics is a statement of conservation of…', opt('Mass', 'Energy', 'Momentum', 'Entropy'), 'b', 'Energy cannot be created or destroyed, only transformed.', 'easy', 2, 0),
       ],
+
+      attachments: [
+        { id: 'at-1', name: 'Surgery', created_at: ago(70) }, { id: 'at-2', name: 'Internal Medicine', created_at: ago(70) },
+        { id: 'at-3', name: 'Pediatrics', created_at: ago(70) }, { id: 'at-4', name: 'Obstetrics & Gynecology', created_at: ago(70) },
+      ],
+      subjects: [
+        { id: 's-1', attachment_id: 'at-1', name: 'Acute abdomen', default_access: 'free', created_at: ago(65) },
+        { id: 's-2', attachment_id: 'at-1', name: 'Hernias', default_access: 'free', created_at: ago(65) },
+        { id: 's-3', attachment_id: 'at-2', name: 'Hypertension', default_access: 'free', created_at: ago(65) },
+        { id: 's-4', attachment_id: 'at-2', name: 'Diabetes mellitus', default_access: 'free', created_at: ago(65) },
+        { id: 's-5', attachment_id: 'at-3', name: 'Neonatal jaundice', default_access: 'free', created_at: ago(65) },
+      ],
+      topics: [
+        { id: 'tp-1', subject_id: 's-1', name: 'Appendicitis', created_at: ago(60) }, { id: 'tp-2', subject_id: 's-1', name: 'Intestinal obstruction', created_at: ago(60) },
+        { id: 'tp-3', subject_id: 's-2', name: 'Inguinal hernia', created_at: ago(60) }, { id: 'tp-4', subject_id: 's-3', name: 'Diagnosis & staging', created_at: ago(60) },
+        { id: 'tp-5', subject_id: 's-4', name: 'Insulin therapy', created_at: ago(60) },
+      ],
+      authors: [
+        { id: 'au-1', name: 'Dr. Najeeb', bio: null, avatar_url: null, created_at: ago(60) }, { id: 'au-2', name: 'Ninja Nerd', bio: null, avatar_url: null, created_at: ago(60) },
+        { id: 'au-3', name: 'Osmosis', bio: null, avatar_url: null, created_at: ago(60) }, { id: 'au-4', name: 'Armando Hasudungan', bio: null, avatar_url: null, created_at: ago(60) },
+        { id: 'au-5', name: 'Prof. A. Karim', bio: null, avatar_url: null, created_at: ago(60) }, { id: 'au-6', name: 'Bailey & Love', bio: null, avatar_url: null, created_at: ago(60) },
+      ],
+      content_items: [
+        ci('ci-1', 'video', 'Appendicitis — Complete Lecture', 's-1', 'at-1', 'tp-1', 'au-1', 'premium', true, 12),
+        ci('ci-2', 'video', 'Intestinal Obstruction Explained', 's-1', 'at-1', 'tp-2', 'au-2', 'free', true, 11),
+        ci('ci-3', 'video', 'Inguinal Hernia Anatomy', 's-2', 'at-1', 'tp-3', 'au-1', 'premium', true, 10),
+        ci('ci-4', 'video', 'Hypertension Made Simple', 's-3', 'at-2', 'tp-4', 'au-2', 'public', true, 9),
+        ci('ci-5', 'video', 'Diabetes: Insulin Therapy', 's-4', 'at-2', 'tp-5', 'au-3', 'free', true, 8, 'uni-1'),
+        ci('ci-6', 'video', 'Neonatal Jaundice Approach', 's-5', 'at-3', null, 'au-4', 'premium', false, 7),
+        ci('ci-7', 'book', 'Bailey & Love — Short Practice of Surgery', 's-1', 'at-1', null, 'au-6', 'premium', true, 6),
+        ci('ci-8', 'book', 'Oxford Handbook of Clinical Medicine', 's-3', 'at-2', null, 'au-5', 'free', true, 5),
+        ci('ci-9', 'book', 'Surgery Quick Revision Notes', 's-2', 'at-1', null, 'au-5', 'public', true, 4),
+        ci('ci-10', 'video', 'Acute Abdomen — Clinical Approach', 's-1', 'at-1', null, 'au-3', 'free', true, 3),
+      ],
+      content_assets: [
+        asset('ci-1', 'https://www.youtube.com/results?search_query=Dr+Najeeb+appendicitis'), asset('ci-2', 'https://www.youtube.com/results?search_query=Ninja+Nerd+intestinal+obstruction'),
+        asset('ci-3', 'https://www.youtube.com/results?search_query=Dr+Najeeb+inguinal+hernia'), asset('ci-4', 'https://www.youtube.com/results?search_query=Ninja+Nerd+hypertension'),
+        asset('ci-5', 'https://www.youtube.com/results?search_query=Osmosis+insulin+therapy'), asset('ci-6', 'https://www.youtube.com/results?search_query=Armando+Hasudungan+neonatal+jaundice'),
+        asset('ci-7', 'https://archive.org/search?query=bailey+love+short+practice+of+surgery'), asset('ci-8', 'https://drive.google.com/'),
+        asset('ci-9', 'https://www.dropbox.com/'), asset('ci-10', 'https://vimeo.com/76979871'),
+      ],
       profiles: [
         profile('u-student', 'student@demo.com', 'Sarah Chen', 'student', { university_id: 'uni-1', program_id: 'prog-1', study_year_id: 'y-2' }),
         profile('u-admin', 'admin@demo.com', 'Admin User', 'admin'),
@@ -119,7 +164,15 @@ function seed(): DB {
 
 // ----------------------------------------------------------------- storage of the db
 let db: DB = (() => {
-  try { const raw = localStorage.getItem(DB_KEY); if (raw) return JSON.parse(raw) as DB; } catch { /* fall through */ }
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as DB;
+      const fresh = seed();
+      Object.keys(fresh.tables).forEach(k => { if (!saved.tables[k]) saved.tables[k] = fresh.tables[k]; }); // tables added in later versions
+      return saved;
+    }
+  } catch { /* fall through */ }
   return seed();
 })();
 const persist = () => { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch { /* quota */ } };
@@ -133,7 +186,7 @@ export function resetMockDb() {
 const me = () => sessionUid;
 const isAdmin = () => db.tables.profiles.find(p => p.id === sessionUid)?.role === 'admin';
 const USER_TABLES = new Set(['bookmarks', 'quiz_attempts', 'study_activity', 'resource_completions', 'learning_goals']);
-const PUBLISHED_TABLES = new Set(['courses', 'resources', 'past_exams', 'questions']);
+const PUBLISHED_TABLES = new Set(['courses', 'resources', 'past_exams', 'questions', 'content_items']);
 const ACTIVE_TABLES = new Set(['universities', 'programs', 'study_years', 'terms']);
 const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now());
 
@@ -141,13 +194,16 @@ const DEFAULTS: Record<string, Row> = {
   universities: { is_active: true }, programs: { is_active: true }, study_years: { is_active: true, sort_order: 0 }, terms: { is_active: true, sort_order: 0, kind: 'semester' },
   courses: { is_published: false, cover_color: '#8b5cf6' }, resources: { is_published: true, type: 'notes' },
   past_exams: { is_published: true, exam_type: 'final', has_answers: false, has_explanations: false },
-  questions: { is_published: true, points: 1, order_index: 0, difficulty: 'medium' }, learning_goals: { is_done: false, target: 1, kind: 'custom' },
+  questions: { is_published: true, points: 1, order_index: 0, difficulty: 'medium' },
+  content_items: { is_published: false, access: 'free' }, subjects: { default_access: 'free' }, learning_goals: { is_done: false, target: 1, kind: 'custom' },
 };
 
 const CHILDREN: Record<string, [string, string][]> = {
   universities: [['programs', 'university_id'], ['courses', 'university_id']], programs: [['study_years', 'program_id'], ['courses', 'program_id']],
   study_years: [['terms', 'study_year_id']], courses: [['resources', 'course_id'], ['past_exams', 'course_id'], ['questions', 'course_id']],
   resources: [['resource_completions', 'resource_id'], ['study_activity', 'resource_id']],
+  attachments: [['subjects', 'attachment_id'], ['content_items', 'attachment_id']], subjects: [['topics', 'subject_id'], ['content_items', 'subject_id']],
+  content_items: [['content_assets', 'item_id']],
 };
 function cascadeDelete(table: string, ids: string[]) {
   if (!ids.length) return;

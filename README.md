@@ -9,6 +9,7 @@ With no `.env.local`, the app runs on a built-in mock backend with hardcoded dat
 ## Setup (real Supabase)
 1. Create a project at https://supabase.com.
 2. SQL Editor → run `supabase/schema.sql`, then optionally `supabase/seed.sql` for demo data.
+2b. Then run `supabase/content_schema.sql` (videos/books library: attachments, subjects, topics, authors, access policies).
 3. Authentication → URL Configuration: add `http://localhost:3000` (and your production URL) to **Redirect URLs** — needed for password recovery links (`/auth/reset`). Optionally turn off "Confirm email" for local testing.
 4. `cp .env.example .env.local` and fill in the project URL + anon key (Project Settings → API).
 5. `npm install && npm run dev`
