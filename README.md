@@ -7,6 +7,9 @@ With no `.env.local`, the app runs on a built-in mock backend with hardcoded dat
 `student@demo.com / demo1234` and `admin@demo.com / admin1234`. Add your Supabase keys later and it switches automatically.
 
 ## Setup (real Supabase)
+**Quick path:** `.env.local` is already filled in. Paste `supabase/setup_all.sql` into the Supabase SQL editor and run it (optionally also `seed.sql` and `seed_content.sql`), set the redirect URL (step 3), run `npm install && npm run dev`, sign up, then promote yourself to admin (step 6).
+
+Detailed steps:
 1. Create a project at https://supabase.com.
 2. SQL Editor → run `supabase/schema.sql`, then optionally `supabase/seed.sql` for demo data.
 2b. Then run `supabase/content_schema.sql` (videos/books library: attachments, subjects, topics, authors, access policies).
