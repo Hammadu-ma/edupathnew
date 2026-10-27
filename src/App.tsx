@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './contexts/AppContext';
 import { CatalogProvider } from './contexts/CatalogContext';
 import { StudentLayout, AdminLayout } from './components/layout/Navigation';
-import { isConfigured } from './lib/supabase';
 
 const named = <T extends Record<string, any>>(load: () => Promise<T>, key: keyof T) =>
   lazy(() => load().then(m => ({ default: m[key] as React.ComponentType })));
@@ -33,22 +32,6 @@ function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <p className="text-sm text-[var(--text-tertiary)] animate-pulse">Loading...</p>
-    </div>
-  );
-}
-
-function SetupScreen() {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="max-w-lg rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-8">
-        <h1 className="font-display text-2xl text-[var(--text-primary)] mb-3">Connect Supabase</h1>
-        <ol className="list-decimal ml-5 space-y-2 text-sm text-[var(--text-secondary)]">
-          <li>Create a project at supabase.com.</li>
-          <li>Run <code>supabase/schema.sql</code> (and optionally <code>seed.sql</code>) in the SQL editor.</li>
-          <li>Copy <code>.env.example</code> to <code>.env.local</code> and fill in your project URL and anon key.</li>
-          <li>Restart <code>npm run dev</code>.</li>
-        </ol>
-      </div>
     </div>
   );
 }
@@ -106,7 +89,6 @@ function AppRoutes() {
 }
 
 export default function App() {
-  if (!isConfigured) return <SetupScreen />;
   return (
     <BrowserRouter>
       <AppProvider>

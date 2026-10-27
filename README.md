@@ -2,7 +2,11 @@
 
 React + Vite + Tailwind v4 front end on a Supabase backend (Auth, Postgres with RLS, Storage).
 
-## Setup
+## Demo mode (no Supabase needed)
+With no `.env.local`, the app runs on a built-in mock backend with hardcoded data (saved in localStorage):
+`student@demo.com / demo1234` and `admin@demo.com / admin1234`. Add your Supabase keys later and it switches automatically.
+
+## Setup (real Supabase)
 1. Create a project at https://supabase.com.
 2. SQL Editor → run `supabase/schema.sql`, then optionally `supabase/seed.sql` for demo data.
 3. Authentication → URL Configuration: add `http://localhost:3000` (and your production URL) to **Redirect URLs** — needed for password recovery links (`/auth/reset`). Optionally turn off "Confirm email" for local testing.

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, GraduationCap, Lock, Mail, User as UserIcon } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import { isMock } from '../lib/supabase';
+import { resetMockDb } from '../lib/mockSupabase';
 import { useCatalog } from '../contexts/CatalogContext';
 import { Button, Input } from '../components/ui/Primitives';
 import { HierarchyPicker, HierarchyValue, emptyHierarchy } from '../components/HierarchyPicker';
@@ -31,6 +33,15 @@ function AuthShell({ title, subtitle, children, footer }: { title: string; subti
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-purple-400 flex items-center justify-center"><GraduationCap className="w-4 h-4 text-white" /></div>
             <span className="font-display text-xl text-[var(--text-primary)]">Bloom Learning</span>
           </div>
+          {isMock && (
+            <div className="mb-6 rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/10 p-4 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+              <p className="font-semibold">Demo mode — no Supabase connected</p>
+              <p>Student: <code>student@demo.com</code> / <code>demo1234</code></p>
+              <p>Admin: <code>admin@demo.com</code> / <code>admin1234</code></p>
+              <p>Data is hardcoded and saved in this browser. Email links (password reset) aren't sent in demo mode.</p>
+              <button type="button" onClick={() => { if (window.confirm('Reset all demo data?')) resetMockDb(); }} className="underline">Reset demo data</button>
+            </div>
+          )}
           <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-1">{title}</h2>
           <p className="text-[var(--text-tertiary)] mb-8">{subtitle}</p>
           {children}

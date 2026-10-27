@@ -1,12 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createMockClient } from './mockSupabase';
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-export const isConfigured = Boolean(url && key);
+/** True when no Supabase credentials are set: the app runs on a local, hardcoded demo backend. */
+export const isMock = !(url && key);
 
-// Placeholder values keep the app importable when env vars are missing;
-// <App /> shows a setup screen instead of making requests in that case.
-export const supabase = createClient(url || 'http://localhost:54321', key || 'missing-anon-key', {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-});
+export const supabase = (isMock
+  ? createMockClient()
+  : createClient(url!, key!, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
+) as unknown as SupabaseClient;
